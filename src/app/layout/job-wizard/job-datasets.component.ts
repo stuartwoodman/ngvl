@@ -23,7 +23,7 @@ import { OnlineResourceModel } from 'portal-core-ui/model/data/onlineresource.mo
 export class JobDatasetsComponent {
 
     // Job input file tree (input type root nodes added to this)
-    jobInputNodes: TreeNode[];
+    jobInputNodes: TreeNode[] = [];
     treeCols = [
         { header: 'Name', field: 'name', colStyle: { 'width': '20%' } },
         { header: 'Location', field: 'location', colStyle: { 'width': '20%' } },

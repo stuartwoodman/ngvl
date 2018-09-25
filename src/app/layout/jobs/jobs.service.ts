@@ -55,8 +55,8 @@ export class JobsService {
         return this.vgl.submitJob(job);
     }
 
-    public duplicateJob(jobId: number): Observable<Job[]> {
-        return this.vgl.duplicateJob(jobId);
+    public duplicateJob(jobId: number, files: string[]): Observable<Job[]> {
+        return this.vgl.duplicateJob(jobId, files);
     }
 
     public getAuditLogs(jobId: number): Observable<any> {

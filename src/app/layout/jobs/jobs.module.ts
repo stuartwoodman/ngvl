@@ -25,6 +25,7 @@ import { LogPreview } from './preview/log-preview.component';
 import { OlMapModule } from '../datasets/openlayermap/olmap.module';
 import { JobBrowserComponent } from './job-browser.component';
 import { JobInputsComponent } from './job-inputs.component';
+import { JobFileModalContent } from './job-file.modal.component';
 import { JobStatusModalContent } from './job-status.modal.component';
 import { CopyJobInputsModalContent } from './copy-job-inputs.modal.component';
 import { AngularSplitModule } from 'angular-split';
@@ -52,9 +53,9 @@ import { MessageService } from 'primeng/components/common/messageservice';
     declarations: [
         JobsComponent, JobBrowserComponent, JobInputsComponent, CopyJobInputsModalContent,       
         PreviewDirective, DataServicePreview, ImagePreview,
-        PlainTextPreview, TtlPreview, LogPreview, JobStatusModalContent
+        PlainTextPreview, TtlPreview, LogPreview, JobFileModalContent, JobStatusModalContent
     ],
-    entryComponents: [ DataServicePreview, ImagePreview, PlainTextPreview, TtlPreview, LogPreview, JobStatusModalContent, CopyJobInputsModalContent ],
+    entryComponents: [ DataServicePreview, ImagePreview, PlainTextPreview, TtlPreview, LogPreview, JobFileModalContent, JobStatusModalContent, CopyJobInputsModalContent ],
     providers: [ JobsService, ConfirmationService, MessageService ]
 })
 export class JobsModule { }

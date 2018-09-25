@@ -3,6 +3,7 @@ import { Router } from "@angular/router";
 import { NgbModal } from "@ng-bootstrap/ng-bootstrap";
 import { TreeJobNode, TreeJobs, Job } from "../../shared/modules/vgl/models";
 import { JobsService } from "./jobs.service";
+import { JobFileModalContent } from "./job-file.modal.component";
 import { JobStatusModalContent } from "./job-status.modal.component";
 import { ConfirmationService, TreeNode, SortEvent } from "primeng/api";
 import { Subscription } from "rxjs";
@@ -252,7 +253,7 @@ export class JobBrowserComponent implements OnInit {
             const selectedJob: Job = this.jobs.find(j => j.id === this.selectedJobNodes[0].data.id);
             if (selectedJob.status.toLowerCase() === 'active') {
                 items.push({ label: 'Cancel', icon: 'fa fa-cross', command: (event) => this.cancelSelectedJob() });
-                //items.push({ label: 'Duplicate', icon: 'fa fa-edit', command: (event) => this.duplicateSelectedJob() });
+                items.push({ label: 'Duplicate', icon: 'fa fa-edit', command: (event) => this.duplicateSelectedJob() });
                 // TODO: Confirm on active jobs
                 items.push({ label: 'Status', icon: 'fa fa-info-circle', command: (event) => this.showSelectedJobStatus() });
             } else if (selectedJob.status.toLowerCase() === 'saved') {
@@ -262,11 +263,11 @@ export class JobBrowserComponent implements OnInit {
                 items.push({ label: 'Status', icon: 'fa fa-info-circle', command: (event) => this.showSelectedJobStatus() });
             } else if (selectedJob.status.toLowerCase() === 'done' || selectedJob.status.toLowerCase() === 'error') {
                 items.push({ label: 'Delete', icon: 'fa fa-trash', command: (event) => this.deleteSelectedJobsAndFolders() });
-                //items.push({ label: 'Duplicate', icon: 'fa fa-edit', command: (event) => this.duplicateSelectedJob() });
+                items.push({ label: 'Duplicate', icon: 'fa fa-edit', command: (event) => this.duplicateSelectedJob() });
                 items.push({ label: 'Status', icon: 'fa fa-info-circle', command: (event) => this.showSelectedJobStatus() });
             } else {
                 items.push({ label: 'Cancel', icon: 'fa fa-cross', command: (event) => this.cancelSelectedJob() });
-                //items.push({ label: 'Duplicate', icon: 'fa fa-edit', command: (event) => this.duplicateSelectedJob() });
+                items.push({ label: 'Duplicate', icon: 'fa fa-edit', command: (event) => this.duplicateSelectedJob() });
             }
         }
         return items;
@@ -518,28 +519,41 @@ export class JobBrowserComponent implements OnInit {
      * TODO: Re-implement, make sure files are copied
      */
     public duplicateSelectedJob(): void {
-        if(this.selectedJob) {
-            this.jobsService.duplicateJob(this.selectedJob.id).subscribe(
-                result => {
-                    if(result.length > 0) {
-                        let job: Job = result[0];
-                        let node: TreeNode = {};
-                        node.leaf = true;
-                        node.data = {
-                            id: job.id,
-                            name: job.name,
-                            status: job.status
-                        };
-                        this.jobs.push(job);
-                        this.treeJobsData.push(node);
-                        this.updateJobTree();
+        this.jobsService.getJobCloudFiles(this.selectedJob.id).subscribe(
+            cloudFiles => { 
+                const modalRef = this.modalService.open(JobFileModalContent);
+                modalRef.componentInstance.cloudFiles = cloudFiles;
+                modalRef.result.then((result) => {
+                    // Get list of filenames to duplicate
+                    if(result instanceof Array) {
+                        let filenames: string[] = [];
+                        for(let file of result) {
+                            filenames.push(file.name);
+                        }
+                        this.jobsService.duplicateJob(this.selectedJob.id, filenames).subscribe(
+                            result => {
+                                if(result.length > 0) {
+                                    let job: Job = result[0];
+                                    let node: TreeNode = {};
+                                    node.leaf = true;
+                                    node.data = {
+                                        id: job.id,
+                                        name: job.name,
+                                        status: job.status
+                                    };
+                                    this.jobs.push(job);
+                                    this.treeJobsData.push(node);
+                                    this.updateJobTree();
+                                }
+                                this.messageService.add({ severity: 'success', summary: 'Duplicate Job', detail: "Job successfully duplicated" });
+                            }, error => {
+                                this.messageService.add({ severity: 'error', summary: 'Error duplicating job', detail: error.message, sticky: true });
+                            }
+                        )
+    
                     }
-                    this.messageService.add({ severity: 'success', summary: 'Duplicate Job', detail: "Job successfully duplicated" });
-                }, error => {
-                    this.messageService.add({ severity: 'error', summary: 'Error duplicating job', detail: error.message, sticky: true });
-                }
-            )
-        }
+                }, () => {});
+            });
     }
 
 
