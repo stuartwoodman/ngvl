@@ -21,7 +21,6 @@ const VALID_ONLINE_RESOURCE_TYPES: string[] = ['WMS', 'WFS', 'CSW', 'WWW'];
 export class DatasetsRecordComponent {
 
     @Input() registries: any = [];
-    //@Input() cswRecordList: CSWRecordModel[] = [];
     @Input() cswRecord: CSWRecordModel;
     @Input() bookMarkList: BookMark[] = [];
     @Input() validUser: boolean = false;
@@ -34,7 +33,12 @@ export class DatasetsRecordComponent {
     layerOpacity: number = 100;
 
     // Keep track of GSKY (or other) layers that may currently be loading
-    private layersLoading: Map<string, boolean> = new Map<string, boolean>();
+    public layersLoading: boolean;
+
+    // Keep track of time dimensions that may be loading via GetCap requests
+    public timeDimensionStatus: string;
+    public timeDimensionList: string[] = [];
+    public selectedTimeDimension = "";
 
 
     constructor(public olMapService: OlMapService,
@@ -44,16 +48,15 @@ export class DatasetsRecordComponent {
                 public activeModal: NgbActiveModal) { }
 
     /**
-     *
-     * @param cswRecord
+     * Add CSWRecord layer to map
      */
-    public addCSWRecord(cswRecord: CSWRecordModel): void {
-        if(this.isExpandableRecord(cswRecord)) {
-            this.loadExpandedLayers(cswRecord);
+    public addCSWRecord(): void {
+        if(this.isExpandableRecord()) {
+            this.loadExpandedLayers();
         } else try {
 
             // Clone the record before adding in case we need to modify details for GSKY records
-            let clonedRecord = JSON.parse(JSON.stringify(cswRecord));
+            let clonedRecord = JSON.parse(JSON.stringify(this.cswRecord));
 
             // Check online resources to see if protocol request has been set
             // denoting a specific layer of the WMS/WCS etc. and rebuild URL
@@ -79,31 +82,30 @@ export class DatasetsRecordComponent {
     }
 
     /**
-     *
-     * @param recordId
+     * Remove the CSWRecord layer fom the map
      */
-    public removeCSWRecord(recordId: string): void {
-        this.olMapService.removeLayer(this.olMapService.getLayerModel(recordId));
+    public removeCSWRecord(): void {
+        this.olMapService.removeLayer(this.olMapService.getLayerModel(this.cswRecord.id));
+        this.timeDimensionList = [];
+        this.timeDimensionStatus = "";
     }
 
     /**
-     *
-     * @param cswRecord
+     * Show the CSWRecord information dialog
      */
-    public displayRecordInformation(cswRecord) {
-        if (cswRecord) {
+    public displayRecordInformation() {
+        if (this.cswRecord) {
             const modelRef = this.modalService.open(RecordModalComponent, { size: 'lg' });
-            modelRef.componentInstance.record = cswRecord;
+            modelRef.componentInstance.record = this.cswRecord;
         }
     }
 
     /**
-     *
-     * @param cswRecord
+     * Display the CSWRecord layer bounds
      */
-    public showCSWRecordBounds(cswRecord: CSWRecordModel): void {
-        if (cswRecord.geographicElements.length > 0) {
-            let bounds = cswRecord.geographicElements.find(i => i.type === 'bbox');
+    public showCSWRecordBounds(): void {
+        if (this.cswRecord.geographicElements.length > 0) {
+            let bounds = this.cswRecord.geographicElements.find(i => i.type === 'bbox');
             const bbox: [number, number, number, number] =
                 [bounds.westBoundLongitude, bounds.southBoundLatitude, bounds.eastBoundLongitude, bounds.northBoundLatitude];
             const extent = Proj.transformExtent(bbox, 'EPSG:4326', 'EPSG:3857');
@@ -112,12 +114,11 @@ export class DatasetsRecordComponent {
     }
 
     /**
-     *
-     * @param cswRecord
+     * Zoom to the CSWRecord layer bounds
      */
-    public zoomToCSWRecordBounds(cswRecord: CSWRecordModel): void {
-        if (cswRecord.geographicElements.length > 0) {
-            let bounds = cswRecord.geographicElements.find(i => i.type === 'bbox');
+    public zoomToCSWRecordBounds(): void {
+        if (this.cswRecord.geographicElements.length > 0) {
+            let bounds = this.cswRecord.geographicElements.find(i => i.type === 'bbox');
             const bbox: [number, number, number, number] =
                 [bounds.westBoundLongitude, bounds.southBoundLatitude, bounds.eastBoundLongitude, bounds.northBoundLatitude];
             const extent = Proj.transformExtent(bbox, 'EPSG:4326', 'EPSG:3857');
@@ -127,34 +128,31 @@ export class DatasetsRecordComponent {
 
     /**
      * Bookmark a dataset as favourite and emit the event "add" to be processed by datasets.component
-     * @param cswRecord
      */
-    public addBookMark(cswRecord: CSWRecordModel) {
-        let serviceId: string = this.cswSearchService.getServiceId(cswRecord);
-        let fileIdentifier: string = cswRecord.id;
+    public addBookMark() {
+        let serviceId: string = this.cswSearchService.getServiceId(this.cswRecord);
+        let fileIdentifier: string = this.cswRecord.id;
         this.cswSearchService.addBookMark(fileIdentifier, serviceId).subscribe(id => {
-            this.bookMarkChoice.emit({ choice: "add", bookmark: {id: id, fileIdentifier: fileIdentifier, serviceId : serviceId}, cswRecord: cswRecord });
+            this.bookMarkChoice.emit({ choice: "add", bookmark: {id: id, fileIdentifier: fileIdentifier, serviceId : serviceId}, cswRecord: this.cswRecord });
         }, error => {
             console.log(error.message);
         });
     }
 
     /**
-     * checks if a csw record has been bookmarked by the user
-     * @param cswRecord
+     * Checks if a csw record has been bookmarked by the user
      */
-    public isBookMark(cswRecord: CSWRecordModel) {
-        return this.cswSearchService.isBookMark(cswRecord);
+    public isBookMark() {
+        return this.cswSearchService.isBookMark(this.cswRecord);
     }
 
     /**
-     * remove dataset as favourite and emit the event "remove" to be processed by datasets.component
-     * @param cswRecord
+     * Remove dataset as favourite and emit the event "remove" to be processed by datasets.component
      */
-    public removeBookMark(cswRecord: CSWRecordModel) {
-       let bookmarkId: number = this.cswSearchService.getBookMarkId(cswRecord);
+    public removeBookMark() {
+       let bookmarkId: number = this.cswSearchService.getBookMarkId(this.cswRecord);
         this.cswSearchService.removeBookMark(bookmarkId).subscribe(data => {
-            this.bookMarkChoice.emit({ choice: "remove", bookmark: {id : bookmarkId }, cswRecord: cswRecord });
+            this.bookMarkChoice.emit({ choice: "remove", bookmark: {id : bookmarkId }, cswRecord: this.cswRecord });
         }, error => {
             console.log(error.message);
         });
@@ -179,22 +177,21 @@ export class DatasetsRecordComponent {
      *      - WCS GetCapabilities with a protocolRequest value set.
      *      - NetCDF endpoint with a protocolRequest value set. 
      *
-     * @param cswRecord the CSWRecord to verify
      * @return true is CSWRecord can be added, false otherwise
      */
-    public isAddableRecord(cswRecord: CSWRecordModel): boolean {
+    public isAddableRecord(): boolean {
         let addable: boolean = false;
         // Basic checks
-        if(cswRecord.hasOwnProperty('onlineResources') &&
-                cswRecord.onlineResources != null &&
-                cswRecord.onlineResources.some(resource => VALID_ONLINE_RESOURCE_TYPES.indexOf(resource.type) > -1) &&
-                cswRecord.geographicElements.length > 0 &&
-                !this.olMapService.layerExists(cswRecord.id)) {
+        if(this.cswRecord.hasOwnProperty('onlineResources') &&
+            this.cswRecord.onlineResources != null &&
+            this.cswRecord.onlineResources.some(resource => VALID_ONLINE_RESOURCE_TYPES.indexOf(resource.type) > -1) &&
+            this.cswRecord.geographicElements.length > 0 &&
+                !this.olMapService.layerExists(this.cswRecord.id)) {
             addable = true;
             // GSKY checks - If resource is a WMS GetCapabilities request then
             // protocol request must be present otherwise it's expandable, not
             // addable
-            const wmsResource: OnlineResourceModel = this.getCapabilitiesOnlineResource(cswRecord, 'wms');
+            const wmsResource: OnlineResourceModel = this.getCapabilitiesOnlineResource('wms');
             if(wmsResource && this.isGetCapabilitiesUrl(wmsResource.url, "wms") && wmsResource.protocolRequest && wmsResource.protocolRequest == "") {
                 addable = false;
             }
@@ -213,42 +210,29 @@ export class DatasetsRecordComponent {
      *   - Has a WMS OnlineResourceModel with a GetCapabilities URL and NO protocolRequest value.
      *   - Has a WCS OnlineResourceModel with a GetCapabilities URL and NO protocolRequest value.
      * 
-     * @param cswRecord 
      */
-    public isExpandableRecord(cswRecord: CSWRecordModel): boolean {
-        const wmsResource: OnlineResourceModel = this.getCapabilitiesOnlineResource(cswRecord, 'wms');
-        const wcsResource: OnlineResourceModel = this.getCapabilitiesOnlineResource(cswRecord, 'wcs');
+    public isExpandableRecord(): boolean {
+        const wmsResource: OnlineResourceModel = this.getCapabilitiesOnlineResource('wms');
+        const wcsResource: OnlineResourceModel = this.getCapabilitiesOnlineResource('wcs');
         return wmsResource != null && (wmsResource.protocolRequest == null || wmsResource.protocolRequest.trim() == "") &&
                wcsResource != null && (wcsResource.protocolRequest == null || wcsResource.protocolRequest.trim() == "");
     }
 
     /**
-     * 
-     * @param layerId 
-     */
-    public areLayersLoading(layerId: string): boolean {
-        return this.layersLoading.get(layerId) == true;
-    }
-
-    /**
      * Check if a record has already been added to the map
-     * 
-     * @param cswRecord the record to check
      */
-    public isRecordAddedToMap(cswRecord: CSWRecordModel): boolean {
-        return this.olMapService.layerExists(cswRecord.id);
+    public isRecordAddedToMap(): boolean {
+        return this.olMapService.layerExists(this.cswRecord.id);
     }
 
     /**
      * Return true if a CSWRecordModel has child records.
      * Currently the only indicator of GSKY records.
-     * 
-     * @param cswRecord 
      */
-    public hasChildRecords(cswRecord: CSWRecordModel): boolean {
-        if(cswRecord.hasOwnProperty('childRecords') &&
-           cswRecord.childRecords != null &&
-           cswRecord.childRecords.length > 0) {
+    public hasChildRecords(): boolean {
+        if(this.cswRecord.hasOwnProperty('childRecords') &&
+            this.cswRecord.childRecords != null &&
+            this.cswRecord.childRecords.length > 0) {
             return true;
         }
         return false;
@@ -256,12 +240,10 @@ export class DatasetsRecordComponent {
 
     /**
      * Remove all child records from a particular record
-     * 
-     * @param cswRecord 
      */
-    public removeChildRecords(cswRecord: CSWRecordModel) {
-        if(cswRecord.hasOwnProperty('childRecords')) {
-            cswRecord.childRecords = [];
+    public removeChildRecords() {
+        if(this.cswRecord.hasOwnProperty('childRecords')) {
+            this.cswRecord.childRecords = [];
         }
     }
 
@@ -288,11 +270,11 @@ export class DatasetsRecordComponent {
     /**
      * Parse the CSW record to see if it has a GetCapabilities request (WMS or WCS)
      * 
-     * @param url endpoint
+     * @param serviceType WMS or WCS
      */
-    public getCapabilitiesOnlineResource(record: CSWRecordModel, serviceType: string): OnlineResourceModel {
-        if(record.onlineResources) {
-            const onlineResource: OnlineResourceModel = record.onlineResources.find(i => i.type.toLowerCase() == serviceType.toLowerCase());
+    public getCapabilitiesOnlineResource(serviceType: string): OnlineResourceModel {
+        if(this.cswRecord.onlineResources) {
+            const onlineResource: OnlineResourceModel = this.cswRecord.onlineResources.find(i => i.type.toLowerCase() == serviceType.toLowerCase());
             if(onlineResource && this.isGetCapabilitiesUrl(onlineResource.url, serviceType)) {
                 return onlineResource;
             }
@@ -300,16 +282,13 @@ export class DatasetsRecordComponent {
         return null;
     }
 
-
     /**
      * Retrieve a GSKY record's layers and add them to the record as child records
-     * 
-     * @param cswRecord 
      */
-    loadExpandedLayers(cswRecord: CSWRecordModel) {
-        this.layersLoading.set(cswRecord.id, true);
-        const wmsGetCapResource: OnlineResourceModel = this.getCapabilitiesOnlineResource(cswRecord, 'wms');
-        const wcsGetCapResource: OnlineResourceModel = this.getCapabilitiesOnlineResource(cswRecord, 'wcs');
+    loadExpandedLayers() {
+        this.layersLoading = true;
+        const wmsGetCapResource: OnlineResourceModel = this.getCapabilitiesOnlineResource('wms');
+        const wcsGetCapResource: OnlineResourceModel = this.getCapabilitiesOnlineResource('wcs');
         if(wmsGetCapResource != null && wcsGetCapResource != null) {
             // Construct a corresponding WCS record for each layer in the WMS
             this.vglService.getCustomLayerRecords(wmsGetCapResource.url).subscribe((response: CSWRecordModel[]) => {
@@ -328,17 +307,18 @@ export class DatasetsRecordComponent {
                         protocolRequest: layer.onlineResources[0].protocolRequest
                     }
                     layer.onlineResources.push(wcsOnlineResource);
-                    cswRecord.childRecords.push(layer);
+                    this.cswRecord.childRecords.push(layer);
                 }
             }, error => {
                 // TODO: Do something
             }, () => {
-                this.layersLoading.set(cswRecord.id, false);
+                this.layersLoading = false;
             });
         }
     }
 
     /**
+     * Set layer opacity
      * 
      * @param layerId 
      * @param opacity 
@@ -346,6 +326,67 @@ export class DatasetsRecordComponent {
     public setLayerOpacity(e: any) {
         this.layerOpacity = e.value;
         this.olMapService.setLayerOpacity(this.cswRecord.id, e.value/100);
+    }
+
+    /**
+     * Does the CSWRecord have a temporal extent?
+     */
+    public hasTemporalExtent(): boolean {
+        if (this.cswRecord.temporalExtent && 
+            this.cswRecord.temporalExtent.beginPosition && 
+            this.cswRecord.temporalExtent.endPosition &&
+            this.cswRecord.temporalExtent.beginPosition != this.cswRecord.temporalExtent.endPosition) {
+                return true;
+            }
+    }
+
+    /**
+     * Get a list of times this record may have. Requires the CSWRecord to have
+     * a temporalExtent set and an associated WMS OnlineResource against which a
+     * GetCapabilities request can be made to retrieve times
+     */
+    public loadTimes() {
+        const wmsResource: OnlineResourceModel = this.cswRecord.onlineResources.find(
+            resource => resource.type.toLocaleLowerCase() == 'wms');
+        if(wmsResource) {
+            this.timeDimensionList = [];
+            this.selectedTimeDimension = "";
+            this.timeDimensionStatus = 'loading';
+            // TODO: Currently must be 1.1.1, perhaps due to Geoserver configuration
+            this.vglService.getWmsCapabilities(wmsResource.url, "1.1.1").subscribe(response => {
+                if(response && response.layers) {
+                    let layer = response.layers.find(l => l.name == wmsResource.name);
+                    // Name may not have matched due to being appended with "<workspace>:"
+                    if(!layer) {
+                        for(let wmsLayer of response.layers) {
+                            const colonIndex = wmsLayer.name.indexOf(':');
+                            if(colonIndex != -1) {
+                                const layerName: string = wmsLayer.name.substring(colonIndex + 1, wmsLayer.name.length + 1);
+                                if(layerName == wmsResource.name) {
+                                    layer = wmsLayer;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    if (layer && layer.timeDimension && layer.timeDimension.length > 0) {
+                        this.timeDimensionList = layer.timeDimension;
+                    }
+                }
+                this.timeDimensionStatus = 'loaded';
+            }, error => {
+                this.timeDimensionStatus = 'error';
+            });
+        }
+    }
+
+    /**
+     * Change the time of the map layer
+     * 
+     * @param newTime the new time to display
+     */
+    changeTime(newTime: string) {
+        this.olMapService.setLayerSourceParam(this.cswRecord.id, 'TIME', newTime);
     }
 
 }

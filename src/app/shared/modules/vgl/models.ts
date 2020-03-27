@@ -313,6 +313,11 @@ export interface DownloadOptions {
     bookmarkOptionName?: string;
 }
 
+export interface TemporalExtent {
+  begin: Date;
+  end: Date;
+}
+
 /* book marks information for a dataset*/
 export interface BookMark {
     fileIdentifier: string;
