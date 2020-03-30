@@ -35,10 +35,10 @@ export class DatasetsRecordComponent {
     // Keep track of GSKY (or other) layers that may currently be loading
     public layersLoading: boolean;
 
-    // Keep track of time dimensions that may be loading via GetCap requests
-    public timeDimensionStatus: string;
-    public timeDimensionList: string[] = [];
-    public selectedTimeDimension = "";
+    // Keep track of time extents that may be loading via GetCap requests
+    public timeExtentStatus: string;
+    public timeExtentList: string[] = [];
+    public selectedTimeExtent = "";
 
 
     constructor(public olMapService: OlMapService,
@@ -86,8 +86,8 @@ export class DatasetsRecordComponent {
      */
     public removeCSWRecord(): void {
         this.olMapService.removeLayer(this.olMapService.getLayerModel(this.cswRecord.id));
-        this.timeDimensionList = [];
-        this.timeDimensionStatus = "";
+        this.timeExtentList = [];
+        this.timeExtentStatus = "";
     }
 
     /**
@@ -349,9 +349,9 @@ export class DatasetsRecordComponent {
         const wmsResource: OnlineResourceModel = this.cswRecord.onlineResources.find(
             resource => resource.type.toLocaleLowerCase() == 'wms');
         if(wmsResource) {
-            this.timeDimensionList = [];
-            this.selectedTimeDimension = "";
-            this.timeDimensionStatus = 'loading';
+            this.timeExtentList = [];
+            this.selectedTimeExtent = "";
+            this.timeExtentStatus = 'loading';
             // TODO: Currently must be 1.1.1, perhaps due to Geoserver configuration
             this.vglService.getWmsCapabilities(wmsResource.url, "1.1.1").subscribe(response => {
                 if(response && response.layers) {
@@ -369,13 +369,13 @@ export class DatasetsRecordComponent {
                             }
                         }
                     }
-                    if (layer && layer.timeDimension && layer.timeDimension.length > 0) {
-                        this.timeDimensionList = layer.timeDimension;
+                    if (layer && layer.timeExtent && layer.timeExtent.length > 0) {
+                        this.timeExtentList = layer.timeExtent;
                     }
                 }
-                this.timeDimensionStatus = 'loaded';
+                this.timeExtentStatus = 'loaded';
             }, error => {
-                this.timeDimensionStatus = 'error';
+                this.timeExtentStatus = 'error';
             });
         }
     }
