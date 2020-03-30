@@ -46,7 +46,7 @@
             </button>
             <div ngbDropdownMenu style="padding:4px;">
                 <div style="overflow-y:auto;max-height:100px;">
-                    <button class="btn btn-sm" *ngFor="let t of timeExtentList" (click)="changeTime(t)" style="width:100%;">{{ t }}</button>
+                    <button class="btn btn-sm" *ngFor="let t of timeExtentList" (click)="changeTime(t)" style="width:100%;">{{ t | date }}</button>
                 </div>
             </div>
         </div>
