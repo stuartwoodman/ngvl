@@ -5,7 +5,7 @@ import { RecordModalComponent } from './record.modal.component';
 import { OlMapService } from 'portal-core-ui/service/openlayermap/ol-map.service';
 import { CSWSearchService } from '../../shared/services/csw-search.service';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
-import * as olProj from 'ol/proj';
+import * as Proj from 'ol/proj';
 
 
 // List of valid online resource types that can be added to the map
@@ -72,7 +72,7 @@ export class DatasetsDisplayComponent {
             let bounds = cswRecord.geographicElements.find(i => i.type === 'bbox');
             const bbox: [number, number, number, number] =
                 [bounds.westBoundLongitude, bounds.southBoundLatitude, bounds.eastBoundLongitude, bounds.northBoundLatitude];
-            const extent = olProj.transformExtent(bbox, 'EPSG:4326', 'EPSG:3857');
+            const extent = Proj.transformExtent(bbox, 'EPSG:4326', 'EPSG:3857');
             this.olMapService.displayExtent(extent, 3000);
         }
     }
@@ -86,7 +86,7 @@ export class DatasetsDisplayComponent {
             let bounds = cswRecord.geographicElements.find(i => i.type === 'bbox');
             const bbox: [number, number, number, number] =
                 [bounds.westBoundLongitude, bounds.southBoundLatitude, bounds.eastBoundLongitude, bounds.northBoundLatitude];
-            const extent = olProj.transformExtent(bbox, 'EPSG:4326', 'EPSG:3857');
+            const extent = Proj.transformExtent(bbox, 'EPSG:4326', 'EPSG:3857');
             this.olMapService.fitView(extent);
         }
     }

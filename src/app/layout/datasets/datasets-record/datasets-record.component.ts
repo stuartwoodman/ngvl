@@ -5,7 +5,7 @@ import { RecordModalComponent } from '../record.modal.component';
 import { OlMapService } from 'portal-core-ui/service/openlayermap/ol-map.service';
 import { CSWSearchService } from '../../../shared/services/csw-search.service';
 import { NgbModal, NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
-import Proj from 'ol/proj';
+import * as Proj from 'ol/proj';
 import { OnlineResourceModel } from 'portal-core-ui/model/data/onlineresource.model';
 import { VglService } from '../../../shared/modules/vgl/vgl.service';
 

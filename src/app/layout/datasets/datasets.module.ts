@@ -8,7 +8,7 @@ import { PageHeaderModule } from '../../shared';
 import { OlMapModule } from './openlayermap/olmap.module';
 import { ConfirmDatasetsModalComponent } from './confirm-datasets.modal.component';
 import { DownloadOptionsModalComponent } from './download-options.modal.component';
-import { NgbCollapseModule, NgbModalModule, NgbTypeaheadModule, NgbTabsetModule, NgbActiveModal, NgbAccordionModule, NgbDropdownModule } from '@ng-bootstrap/ng-bootstrap';
+import { NgbCollapseModule, NgbModalModule, NgbTypeaheadModule, NgbNavModule, NgbActiveModal, NgbAccordionModule, NgbDropdownModule } from '@ng-bootstrap/ng-bootstrap';
 import { CalendarModule } from 'primeng/calendar';
 import { TableModule } from 'primeng/table';
 import { TreeTableModule } from 'primeng/treetable';
@@ -34,12 +34,12 @@ import { DatasetsRecordModule } from './datasets-record/datasets-record.module';
     TreeTableModule,
     DropdownModule,
     SliderModule,
-    NgbAccordionModule.forRoot(),
-    NgbCollapseModule.forRoot(),
-    NgbDropdownModule.forRoot(),
-    NgbModalModule.forRoot(),
-    NgbTypeaheadModule.forRoot(),
-    NgbTabsetModule.forRoot()
+    NgbAccordionModule,
+    NgbCollapseModule,
+    NgbDropdownModule,
+    NgbModalModule,
+    NgbTypeaheadModule,
+    NgbNavModule
   ],
   providers: [NgbActiveModal],
   declarations: [ DatasetsComponent, DatasetsDisplayComponent, ConfirmDatasetsModalComponent, DownloadOptionsModalComponent, RemoteDatasetsModalComponent ],

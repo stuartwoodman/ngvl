@@ -1,88 +1,56 @@
-/*
-.row {
-    margin-bottom: 10px;
-}
-li {
-  list-style-type: none;
-}
-*/
+.dataset-record {
 
-.btn {
-    cursor: pointer;
-}
+  .btn {
+      cursor: pointer;
+      border: none;
+      height: 24px;
+      width: 24px;
+      line-height: 14px;
+  }
 
-// Shrink input components a little
-button {
-  height: 24px;
-  line-height: 14px;
-  border: none;
-}
-
-.input-group-append {
-  height: 24px;
-  line-height: 14px;
-}
-
-.input-group-sm {
-  height: 24px;
-}
-
-label {
-  width: 100%;
-  margin-left: 4px;
-  margin-right:4px;
-  height: 24px;
-  line-height: 24px;
-}
-
-.text-truncate {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/*
-.olMapLayerPanel {
-  max-width: 400px;
-  
-  ::ng-deep { 
-      .card {
-          font-size: 0.875rem;
-          line-height: 1.5;
-          border: 0px; 
-      }
-      .card-header a {
-          color: #fff;
-          background-color: #007bff;
-          text-decoration: none;
-      }
-      .card-header {
-          color: #fff;
-          background-color: #007bff;
-          padding: 0.25rem 0.5rem;
-          border-radius: 0.2rem;
-          padding-top: 4.5px;
-          padding-bottom: 4.5px;
-      }
-      .card-body {
-          padding-top: 2px;
-          padding-left: 2px;
-          padding-right: 2px;
-          padding-bottom: 0px;
-      }
+  // Shrink input components a little
+  /*
+  .input-group-sm {
+    height: 24px;
+    line-height: 14px;
   }
   */
 
-  // Remove opacity Dropdown arrow
-  .dropdown-toggle::after {
-      display:none;
+  label {
+    width: 100%;
+    margin-left: 4px;
+    margin-right:4px;
+    height: 24px;
+    line-height: 24px;
   }
 
-  .dropdown-menu {
-      min-width: 25px;
+  .text-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
-  p-slider {
-      display: flex;
-      justify-content: center;
+  ::ng-deep {
+    .input-group {
+      height: 24px;
+      line-height: 14px;
+      /* Newer Bootstrap added flex-wrap which completely broke layout */
+      flex-wrap: nowrap;
+    }
+  }
+
+    // Remove opacity Dropdown arrow
+    .dropdown-toggle::after {
+        display:none;
+    }
+
+    .dropdown-menu {
+        min-width: 25px;
+    }
+
+    p-slider {
+        display: flex;
+        justify-content: center;
+    }
+    
   }

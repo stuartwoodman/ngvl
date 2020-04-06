@@ -18,9 +18,9 @@ import { DatasetsRecordModule } from '../datasets-record/datasets-record.module'
 @NgModule({
   imports: [
     CommonModule,
-    NgbAccordionModule.forRoot(),
-    NgbCollapseModule.forRoot(),
-    NgbDropdownModule.forRoot(),
+    NgbAccordionModule,
+    NgbCollapseModule,
+    NgbDropdownModule,
     ReactiveFormsModule,
     FormsModule,
     RadioButtonModule,
