@@ -16,7 +16,6 @@ import {
   VarBinding,
   create_var_binding
 } from '../modules/solutions/models';
-import { SolutionVarBindingComponent } from '../../layout/job-wizard/solution-var-binding.component';
 
 export const DASHBOARD_VIEW = 'dashboard-view';
 export const DATA_VIEW = 'data-view';
@@ -485,16 +484,16 @@ public updateSolutionsCart(f: ((cart: Solution[]) => Solution[])): Solution[] {
    * so the bindings are reset every time a new job is selected.
    */
   private _resetBindings(solution: Solution) {
-    let varBindings: SolutionVarBindings = {};
+    let varBindings: VarBinding<any>[] = [];
     const id = solution.id;
     const prefix = this._getVarPrefix(solution);
-    varBindings[id] = solution.variables
+    varBindings = solution.variables
       .map(v => {
         const name = `${prefix}-${v.name}`;
         return {...v, name: name};
       })
       .map(create_var_binding);
-    this.setSolutionBindings(varBindings);
+    this.updateSolutionBindings(solution, varBindings);
   }
 
   private _subBindingsIntoTemplate(template) {
