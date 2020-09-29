@@ -14,6 +14,8 @@ import * as Proj from 'ol/proj';
 import { NgbTypeahead } from '@ng-bootstrap/ng-bootstrap';
 import { LayerModel } from 'portal-core-ui/model/data/layer.model';
 
+import { SplitComponent } from 'angular-split';
+
 
 @Component({
     selector: 'app-datasets',
@@ -22,6 +24,8 @@ import { LayerModel } from 'portal-core-ui/model/data/layer.model';
     animations: [routerTransition()]
 })
 export class DatasetsComponent implements OnInit, AfterViewChecked {
+
+    @ViewChild('splitEl') splitEl: SplitComponent;
 
     readonly CSW_RECORD_PAGE_LENGTH = 10;
 
@@ -129,6 +133,10 @@ export class DatasetsComponent implements OnInit, AfterViewChecked {
 
     ngAfterViewChecked() {
         this.userStateService.setView(DATA_VIEW);
+
+        this.splitEl.dragProgress$.subscribe(x => {
+            this.olMapService.updateSize();
+        });
     }
 
     /**
@@ -632,11 +640,6 @@ export class DatasetsComponent implements OnInit, AfterViewChecked {
             this.layerOpacities.set(currentLayer.id, 100);
         }
         return layers;
-    }
-
-    /* on Dragging of the gutter between map and datasets search input area resize the map */
-    onDrag() {
-          this.olMapService.updateSize();
     }
 
 }
