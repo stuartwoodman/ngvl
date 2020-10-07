@@ -111,9 +111,9 @@ export class BooleanBinding extends InputBinding<boolean> {
 }
 
 export function create_var_binding(
-  variable: Variable,
-  options = {}
-): VarBinding<any> {
+    variable: Variable,
+    options = {}
+  ): VarBinding<any> {
 
   const opts: VarBindingOptions<any> = {
     key: variable.name,

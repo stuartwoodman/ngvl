@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { NgForm } from '@angular/forms';
 
 import { UserStateService } from '../../shared';
@@ -10,7 +10,7 @@ import { VglService } from '../../shared/modules/vgl/vgl.service';
     templateUrl: './job-object.component.html',
     styleUrls: ['./job-object.component.scss']
 })
-export class JobObjectComponent implements OnDestroy, OnInit {
+export class JobObjectComponent implements OnDestroy, OnInit, AfterViewInit {
 
   // Local copy of the UserStateService Job object
   job: Job;
@@ -31,9 +31,13 @@ export class JobObjectComponent implements OnDestroy, OnInit {
 
   constructor(private userStateService: UserStateService,
               private vgl: VglService) {
-    // Initialise the job object so we can bind to it and copy parameters as
-    // required.
-    this.job = this.userStateService.createEmptyJob();
+    // Initialise the job object first time so we can bind to it and copy
+    // parameters as required.
+    if (this.userStateService.getJob() === null) {
+      this.job = this.userStateService.createEmptyJob();
+    } else {
+      this.job = this.userStateService.getJob();
+    }
   }
 
   /**
@@ -46,7 +50,7 @@ export class JobObjectComponent implements OnDestroy, OnInit {
     this._solutionsSub = this.userStateService.selectedSolutions.subscribe(solutions => {
       this.userStateService.updateJob({
         ...this.job,
-        jobSolutions: solutions.map(s => s['@id'])
+        solutionIds: solutions.map(s => s['@id'])
       });
     });
 
@@ -56,6 +60,12 @@ export class JobObjectComponent implements OnDestroy, OnInit {
         this.useWalltime = true;
       }
       this.updateComputeServices();
+    });
+  }
+
+  ngAfterViewInit() {
+    this.form.valueChanges.debounceTime(500).subscribe(data => {
+      this.userStateService.updateJob(this.job);
     });
   }
 
@@ -70,7 +80,7 @@ export class JobObjectComponent implements OnDestroy, OnInit {
   }
 
   updateComputeServices() {
-    this.vgl.getComputeServicesForSolutions(this.job.jobSolutions).subscribe(
+    this.vgl.getComputeServicesForSolutions(this.job.solutionIds).subscribe(
       computeServices => {
         this.computeProviders = computeServices;
 
@@ -116,7 +126,7 @@ export class JobObjectComponent implements OnDestroy, OnInit {
       // If we have a list of solutions use that, otherwise use the job id if
       // one has been assigned. If neither is available, don't load any
       // toolboxes yet.
-      this.vgl.getMachineImages(computeServiceId, this.job.jobSolutions, null)
+      this.vgl.getMachineImages(computeServiceId, this.job.solutionIds, null)
         .subscribe(images => {
           this.toolboxes = images;
 

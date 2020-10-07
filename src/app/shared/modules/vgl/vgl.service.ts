@@ -8,6 +8,7 @@ import { Job, Problem, Problems, Solution, User, TreeJobs, Series, CloudFileInfo
 import { CSWRecordModel } from 'portal-core-ui/model/data/cswrecord.model';
 
 import { environment } from '../../../../environments/environment';
+import { SolutionVarBindings } from '../solutions/models';
 
 
 interface VglResponse<T> {
@@ -273,7 +274,7 @@ export class VglService {
   public saveJob(job: Job,
                  downloads: JobDownload[],
                  template: string,
-                 solutions: Solution[],
+                 solutionBindings: SolutionVarBindings,
                  files: any[]): Observable<Job> {
     // Ensure the job object is created/updated first, which also ensures we
     // have a job id for the subsequent requests.
@@ -283,7 +284,7 @@ export class VglService {
 
       // Next associate the template with the job, and if we succeed then return
       // the updated job object.
-      switchMap(job => this.saveScript(template, job, solutions).pipe(map(() => job))),
+      switchMap(job => this.saveScript(template, job, solutionBindings).pipe(map(() => job))),
       switchMap(job => this.uploadFiles(job, files).pipe(map(() => job))),
     );
   }
@@ -331,11 +332,25 @@ export class VglService {
     return this.vglPost('secure/updateJobDownloads.do', params);
   }
 
-  public saveScript(template: string, job: Job, solutions: Solution[]): Observable<any> {
+  public saveScript(template: string, job: Job, solutionBindings: SolutionVarBindings): Observable<any> {
+
+    let varSolutions: string[] = [];
+    let varNames: string[]  = [];
+    let varValues: string[] = [];
+    for (const solution in solutionBindings) {
+      for (const varBinding of solutionBindings[solution]) {
+        varSolutions.push(solution);
+        varNames.push(varBinding.label);
+        varValues.push(varBinding.value);
+      }
+    }
+
     const params = {
       jobId: job.id,
       sourceText: template,
-      solutions: solutions.map(s => s['@id'])
+      varSolutions: varSolutions,
+      varNames: varNames,
+      varValues: varValues
     };
 
     // Use a POST request since the template is arbitrarily large.
@@ -722,5 +737,5 @@ export class VglService {
     };
     return this.vglGet<any>('getWMSCapabilities.do', params);
   }
-  
+
 }

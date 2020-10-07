@@ -134,8 +134,6 @@ export class JobParameter {
     id: number;
     name: string;
     value: string;
-    type: string;
-    // parent: Job;
 }
 
 export class JobDownload {
@@ -189,7 +187,7 @@ export interface Job {
     jobParameters: JobParameter[];
     jobDownloads: JobDownload[];
     jobFiles: JobFile[];
-    jobSolutions: string[];
+    solutionIds: string[];
     annotations: string[];
 
     // These are only required for an HPC job, and won't be populated by VGL

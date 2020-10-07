@@ -17,7 +17,7 @@
   </p>
 
   <div class="page-header">
-    <h1>Job object</h1>
+    <h1>Job details</h1>
     <hr>
   </div>
   <p>
@@ -30,11 +30,26 @@
   </div>
 
   <p>
-    <button class="btn btn-primary" [disabled]="noSave" style="margin-right:8px;" (click)="save()">Save</button>
-    <button class="btn btn-primary" style="margin-right:8px;" (click)="cancel()">Cancel</button>
-    <button class="btn btn-primary" [disabled]="!isJobComplete() || noSave" (click)="submit()">Submit</button>     
+    <button class="btn btn-primary" [disabled]="noSave" style="margin-right:8px;" title="Save job" (click)="save()">Save</button>
+    <button class="btn btn-primary" style="margin-right:8px;" title="Reset all job parameters" (click)="confirmReset()">Reset</button>
+    <button class="btn btn-primary" [disabled]="!isJobComplete() || noSave" title="Submit job" (click)="submit()">Submit</button>     
   </p>
 
 </div>
 
-<p-toast position="center"></p-toast>
+<p-toast key="page-message" position="center"></p-toast>
+
+<p-toast position="center" key="confirm-reset" [baseZIndex]="99999">
+  <ng-template let-message pTemplate="message">
+    <div style="text-align:center;">
+    <i class="pi pi-exclamation-triangle" style="font-size: 3rem"></i>
+    <h4>Confirm Job Reset</h4>
+    <p>This will reset all solution variables and clear all other job details (job downloads will remain).</p>
+    <h5>Are you sure?</h5>
+    </div>
+    <div style="float:right;">
+        <button class="btn btn-success" (click)="reset()" style="margin-bottom:6px;">Yes</button>
+        <button class="btn btn-primary" (click)="removeConfirmResetDialog()" style="margin: 0 0 6px 6px;">No</button>
+    </div>
+  </ng-template>
+</p-toast>

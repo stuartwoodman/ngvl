@@ -1,9 +1,8 @@
 import { Injectable } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 
-import { BehaviorSubject, Observable } from 'rxjs';
-
 import { VarBinding } from '../../shared/modules/solutions/models';
+
 
 @Injectable()
 export class SolutionVarBindingsService {

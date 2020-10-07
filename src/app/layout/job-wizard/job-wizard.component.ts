@@ -62,6 +62,7 @@ export class JobWizardComponent implements AfterViewInit, OnInit, OnDestroy {
             // the job object unchanged.
             map(job => {
               this.messageService.add({
+                key: 'page-message',
                 severity: 'success',
                 summary: 'Load success',
                 detail: `Job ${job.id} loaded successfully.`
@@ -71,13 +72,16 @@ export class JobWizardComponent implements AfterViewInit, OnInit, OnDestroy {
           );
         }
       })
-    ).subscribe(() => {
+    ).subscribe(job => {
         // Only load job downloads after job has loaded
         this.jobDatasetsComponent.loadJobInputs();
+
+        this._solutionsSub = this.userStateService.selectedSolutions.subscribe(
+          solutions => {
+            this.solutions = solutions;
+          }
+        );
     });
-    this._solutionsSub = this.userStateService.selectedSolutions.subscribe(
-      solutions => this.solutions = solutions
-    );
   }
 
   ngAfterViewInit() {
@@ -93,12 +97,12 @@ export class JobWizardComponent implements AfterViewInit, OnInit, OnDestroy {
   save() {
     this.noSave = true;
     this.messageService.clear();
-    this.messageService.add({severity: 'info', summary: 'Saving job...', detail: '', sticky: true});
+    this.messageService.add({key: 'page-message', severity: 'info', summary: 'Saving job...', detail: '', sticky: true});
 
     this.doSave()
       .pipe(catchError((err, obs) => {
         this.messageService.clear();
-        this.messageService.add({severity: 'error', summary: 'Save failed!', detail: JSON.stringify(err), sticky: true});
+        this.messageService.add({key: 'page-message', severity: 'error', summary: 'Save failed!', detail: JSON.stringify(err), sticky: true});
         return EMPTY;
       }))
       .subscribe(
@@ -106,7 +110,7 @@ export class JobWizardComponent implements AfterViewInit, OnInit, OnDestroy {
           if (resp) {
             const id = resp.id;
             this.messageService.clear();
-            this.messageService.add({severity: 'success', summary: 'Saved', detail: `Job ${id} saved successfully.`});
+            this.messageService.add({key: 'page-message', severity: 'success', summary: 'Saved', detail: `Job ${id} saved successfully.`});
             this.noSave = false;
             this.router.navigate(['/wizard/job', id]);
           }
@@ -118,13 +122,14 @@ export class JobWizardComponent implements AfterViewInit, OnInit, OnDestroy {
   submit() {
     this.noSave = true;
     this.messageService.clear();
-    this.messageService.add({severity: 'info', summary: 'Submitting job...', detail: '', sticky: true});
+    this.messageService.add({key: 'page-message', severity: 'info', summary: 'Submitting job...', detail: '', sticky: true});
 
     // Save the job first, then submit it an navigate away.
     this.doSave().subscribe(savedJob => {
       this.vglService.submitJob(savedJob).subscribe(
         () => {
               this.messageService.add({
+                  key: 'page-message',
                   severity: 'success',
                   summary: 'Submitted',
                   detail: `Job ${savedJob.id} submitted successfully.`,
@@ -144,12 +149,39 @@ export class JobWizardComponent implements AfterViewInit, OnInit, OnDestroy {
     return this.vglService.saveJob(this.getJobObject(),
                                    this.userStateService.getJobDownloads(),
                                    this.userStateService.getJobTemplateWithVars(),
-                                   this.userStateService.getSolutionsCart(),
+                                   this.userStateService.getSolutionBindings(),
                                    this.userStateService.getUploadedFiles());
   }
 
+  // TODO: Still useful? Have replaced with "Reset"
   cancel() {
     this.location.back();
+  }
+
+  confirmReset() {
+    this.messageService.add({
+      key: 'confirm-reset',
+      severity: 'warn',
+      sticky: true,
+      summary: '',
+      detail: ''
+    });
+  }
+
+  removeConfirmResetDialog() {
+    this.messageService.clear('confirm-reset');
+  }
+
+  reset() {
+    this.messageService.clear('confirm-reset');
+    this.jobObject.form.reset();
+    this.messageService.add({
+      key: 'page-message',
+      severity: 'success',
+      summary: 'Job Reset',
+      detail: `Job details have been reset.`,
+      life: 10000
+    });
   }
 
   getJobObject(): Job {
@@ -168,9 +200,11 @@ export class JobWizardComponent implements AfterViewInit, OnInit, OnDestroy {
   validSolutionBindings(): boolean {
     const solutionvarBindings: SolutionVarBindings = this.userStateService.getSolutionBindings();
     for (const solution of this.solutions) {
-      for (const bindings of solutionvarBindings[solution.id]) {
-        if (!bindings.isValid()) {
-          return false;
+      if (solutionvarBindings[solution.id]) {
+        for (const bindings of solutionvarBindings[solution.id]) {
+          if (!bindings.isValid()) {
+            return false;
+          }
         }
       }
     }

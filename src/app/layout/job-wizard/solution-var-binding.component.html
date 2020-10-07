@@ -14,7 +14,7 @@
     <input *ngSwitchCase="'checkbox'" [formControlName]="binding.key" [id]="binding.key" type="checkbox" [required]="binding.required">
 
     <select [id]="binding.key" *ngSwitchCase="'dropdown'" [formControlName]="binding.key">
-      <option *ngFor="let opt of getBindingOptions(binding)" [value]="opt">{{opt}}</option>
+      <option *ngFor="let opt of getBindingOptions(binding)" [ngValue]="opt">{{opt}}</option>
     </select>
 
   </div>

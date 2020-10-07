@@ -190,7 +190,7 @@ export class UserStateService {
 
   public removeSolutionFromCart(solution: Solution) {
     if (solution) {
-      this._resetBindings(solution);
+      this._deleteBindings(solution);
       this.updateSolutionsCart((cart: Solution[]) => cart.filter(s => s['@id'] !== solution['@id']));
     }
   }
@@ -226,6 +226,9 @@ public updateSolutionsCart(f: ((cart: Solution[]) => Solution[])): Solution[] {
   public setSolutionsCart(solutions: Solution[]) {
     // Delegate to the update method, ignoring any existing cart.
     this.updateSolutionsCart(() => solutions || []);
+    for (const solution of solutions) {
+      this._resetBindings(solution);
+    }
   }
 
   /**
@@ -418,7 +421,7 @@ public updateSolutionsCart(f: ((cart: Solution[]) => Solution[])): Solution[] {
         jobParameters: [],
         jobDownloads: [],
         jobFiles: [],
-        jobSolutions: [],
+        solutionIds: [],
         annotations: []
     };
     return Object.assign(job, initialValues);
@@ -442,17 +445,37 @@ public updateSolutionsCart(f: ((cart: Solution[]) => Solution[])): Solution[] {
 
       map(job => {
         if (!keepUserSelections) {
-          // Update the cart with the new solutions, ignoring any existing
-          // selections, unless requested not to.
-          if (job.jobSolutions) {
-            this.vgl.getSolutions(job.jobSolutions)
-              .subscribe(solutions => this.setSolutionsCart(solutions));
+
+          // Remove all existing Solutions from cart
+          for (const solution of this.getSolutionsCart()) {
+            this.removeSolutionFromCart(solution);
           }
 
           // Update dataset selections unless requested not to
           if (job.jobDownloads) {
             this.setJobDownloads(job.jobDownloads);
           }
+
+          // Update the cart with the new solutions, ignoring any existing
+          // selections, unless requested not to.
+          if (job.solutionIds) {
+            this.vgl.getSolutions(job.solutionIds)
+              .subscribe(solutions => {
+                this.setSolutionsCart(solutions);
+
+                // Loaded jobs will have job parameters, update solutions with values
+                if (job.jobParameters && job.jobParameters.length > 0) {
+                  for (const solution of solutions) {
+                    for (const jobParam of job.jobParameters) {
+                      if (jobParam['solution'] === solution['id']) {
+                        this.loadBindings(solution, jobParam);
+                      }
+                    }
+                  }
+                }
+              });
+          }
+
         }
 
         return job;
@@ -485,7 +508,6 @@ public updateSolutionsCart(f: ((cart: Solution[]) => Solution[])): Solution[] {
    */
   private _resetBindings(solution: Solution) {
     let varBindings: VarBinding<any>[] = [];
-    const id = solution.id;
     const prefix = this._getVarPrefix(solution);
     varBindings = solution.variables
       .map(v => {
@@ -494,6 +516,24 @@ public updateSolutionsCart(f: ((cart: Solution[]) => Solution[])): Solution[] {
       })
       .map(create_var_binding);
     this.updateSolutionBindings(solution, varBindings);
+  }
+
+  private _deleteBindings(solution: Solution) {
+    if (this.getSolutionBindings[solution.id]) {
+      let varBindings: SolutionVarBindings = this.getSolutionBindings();
+      delete varBindings[solution.id];
+    }
+  }
+
+  public loadBindings(solution: Solution, binding: any) {
+    let solutionBindings: VarBinding<any>[] = this.getSolutionBindings()[solution.id];
+    if (solutionBindings) {
+      let solutionIndex: number = solutionBindings.findIndex(v => v.label === binding.name);
+      if (solutionIndex !== -1) {
+        solutionBindings[solutionIndex].value = binding.value;
+      }
+    }
+    this.updateSolutionBindings(solution, solutionBindings);
   }
 
   private _subBindingsIntoTemplate(template) {
