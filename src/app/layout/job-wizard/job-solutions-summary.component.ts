@@ -1,9 +1,10 @@
-import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { NgbModal, NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { Observable } from 'rxjs';
 import { UserStateService } from '../../shared';
 import { Solution } from '../../shared/modules/vgl/models';
 import { VarBinding, SolutionVarBindings } from '../../shared/modules/solutions/models';
+import { JobSolutionVarsComponent } from './job-solution-vars.component';
 
 
 @Component({
@@ -45,6 +46,9 @@ export class FinalTemplateModalComponent {
 })
 
 export class JobSolutionsSummaryComponent implements OnDestroy, OnInit {
+
+  @ViewChild(JobSolutionVarsComponent)
+  private jobSolutionVarsComponent: JobSolutionVarsComponent;
 
   solutions: Solution[];
   activeSolution: string;
@@ -114,6 +118,12 @@ export class JobSolutionsSummaryComponent implements OnDestroy, OnInit {
     this.userStateService.updateJobTemplate(template);
   }
 
+  patchBindingValues() {
+    if (this.jobSolutionVarsComponent) {
+      this.jobSolutionVarsComponent.patchBindingValues();
+    }
+  }
+
   resetTemplate() {
     this.userStateService.resetJobTemplate();
   }
@@ -124,4 +134,3 @@ export class JobSolutionsSummaryComponent implements OnDestroy, OnInit {
   }
 
 }
-

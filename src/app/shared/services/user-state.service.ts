@@ -498,7 +498,6 @@ public updateSolutionsCart(f: ((cart: Solution[]) => Solution[])): Solution[] {
     // Create a new job with a default name
     const name = "VGL Job - " + this.datePipe.transform(new Date(), 'medium');
     const job = this.createEmptyJob({name: name});
-
     return of(this.updateJob(job));
   }
 
@@ -518,10 +517,24 @@ public updateSolutionsCart(f: ((cart: Solution[]) => Solution[])): Solution[] {
     this.updateSolutionBindings(solution, varBindings);
   }
 
+  /**
+   * Delete the bindings for a specific solution
+   *
+   * @param solution the solution to reset bindings
+   */
   private _deleteBindings(solution: Solution) {
-    if (this.getSolutionBindings[solution.id]) {
+    if (this.getSolutionBindings().hasOwnProperty(solution.id)) {
       let varBindings: SolutionVarBindings = this.getSolutionBindings();
       delete varBindings[solution.id];
+    }
+  }
+
+  /**
+   * Reset the bindings for all solutions in the solutions cart
+   */
+  public resetAllBindings() {
+    for (let solution of this.getSolutionsCart()) {
+      this._resetBindings(solution);
     }
   }
 

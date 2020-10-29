@@ -7,13 +7,16 @@ import { UserStateService } from '../../shared';
 import { VglService } from '../../shared/modules/vgl/vgl.service';
 import { routerTransition } from '../../router.animations';
 
-import { Observable, combineLatest, EMPTY } from 'rxjs';
+import { Observable, combineLatest, EMPTY, of } from 'rxjs';
 import { map, switchMap, catchError } from 'rxjs/operators';
 
 import { Job, Solution } from '../../shared/modules/vgl/models';
 import { SolutionVarBindings } from '../../shared/modules/solutions/models';
 import { JobObjectComponent } from './job-object.component';
 import { JobDatasetsComponent } from './job-datasets.component';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { ConfirmNewJobDialogComponent } from './confirm-new-job-dialog/confirm-new-job-dialog.component';
+import { JobSolutionsSummaryComponent } from './job-solutions-summary.component';
 
 @Component({
   selector: 'app-job-wizard',
@@ -38,22 +41,45 @@ export class JobWizardComponent implements AfterViewInit, OnInit, OnDestroy {
   @ViewChild(JobDatasetsComponent, {static: true})
   private jobDatasetsComponent!: JobDatasetsComponent;
 
+
+  @ViewChild(JobSolutionsSummaryComponent, {static: true})
+  private jobSolutionsSummaryComponent!: JobSolutionsSummaryComponent;
+
+
+
   constructor(private userStateService: UserStateService,
-              private vglService: VglService,
-              private location: Location,
-              private router: Router,
-              private route: ActivatedRoute,
-              private messageService: MessageService,
-              private changeRef: ChangeDetectorRef) {}
+            private vglService: VglService,
+            private location: Location,
+            private router: Router,
+            private route: ActivatedRoute,
+            private messageService: MessageService,
+            private changeRef: ChangeDetectorRef,
+            private modal: NgbModal) {}
 
   ngOnInit() {
     // Check the URL and parameters to determine whether we're creating a new
     // job or loading an existing one.
-    this.routeSub = combineLatest(this.route.url, this.route.paramMap).pipe(
+    this.routeSub = combineLatest([this.route.url, this.route.paramMap]).pipe(
       switchMap(([parts, params]) => {
         if (parts[0].path === 'new') {
-          // Load a new, empty job object for the user to manage.
-          return this.userStateService.newJob();
+          if (this.userStateService.getJob() !== null) {
+            this.modal.open(ConfirmNewJobDialogComponent).result.then(result => {
+              if (result === "newJob") {
+                // Load a new, empty job object for the user to manage.
+                this.userStateService.resetAllBindings();
+                this.userStateService.newJob();
+                this.jobSolutionsSummaryComponent.patchBindingValues();
+              } else {
+                // Use the current job as the new job
+                if (this.userStateService.getJob().id) {
+                  this.location.go("wizard/job/" + this.userStateService.getJob().id);
+                }
+              }
+            });
+          }
+          // Return current job, newJob should reset everything if the user chooses
+          //return of(this.userStateService.getJob());
+          return this.userStateService.job;
         } else if (parts[0].path === 'job' && params.has('id')) {
           // Load the specified job from the server
           const id = parseInt(params.get('id'), 10);
@@ -92,6 +118,11 @@ export class JobWizardComponent implements AfterViewInit, OnInit, OnDestroy {
     // Clean up subs
     this._solutionsSub.unsubscribe();
     this.routeSub.unsubscribe();
+  }
+
+  testResetBindings() {
+    this.userStateService.resetAllBindings();
+    this.jobSolutionsSummaryComponent.patchBindingValues();
   }
 
   save() {
@@ -174,7 +205,11 @@ export class JobWizardComponent implements AfterViewInit, OnInit, OnDestroy {
 
   reset() {
     this.messageService.clear('confirm-reset');
+    this.userStateService.resetAllBindings();
     this.jobObject.form.reset();
+
+    this.router.navigate(['/wizard/new']);
+
     this.messageService.add({
       key: 'page-message',
       severity: 'success',
@@ -210,4 +245,5 @@ export class JobWizardComponent implements AfterViewInit, OnInit, OnDestroy {
     }
     return true;
   }
+
 }

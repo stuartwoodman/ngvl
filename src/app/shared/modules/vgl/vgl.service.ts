@@ -348,9 +348,9 @@ export class VglService {
     const params = {
       jobId: job.id,
       sourceText: template,
-      varSolutions: varSolutions,
-      varNames: varNames,
-      varValues: varValues
+      variableSolutions: varSolutions,
+      variableNames: varNames,
+      variableValues: varValues
     };
 
     // Use a POST request since the template is arbitrarily large.

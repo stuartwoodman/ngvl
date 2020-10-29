@@ -1,0 +1,13 @@
+<div class="modal-header">
+    <h4 class="modal-title" id="modal-title">Create Job</h4>
+    <button type="button" class="close" aria-describedby="modal-title" (click)="modal.close('Cross click')">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body">
+    <p><strong>We've found a Job currently in progress, do you wish to continue editing this job or create a new job?</strong></p>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-outline-secondary" (click)="modal.close('editJob')">Continue Editing</button>
+    <button type="button" class="btn btn-primary" (click)="modal.close('newJob')">New Job</button>
+  </div>

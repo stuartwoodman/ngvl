@@ -5,7 +5,7 @@ import { Subscription, combineLatest } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 import { Solution, JobDownload, CloudFileInformation } from '../../shared/modules/vgl/models';
-import { VarBinding, OptionsBinding } from '../../shared/modules/solutions/models';
+import { VarBinding, OptionsBinding, SolutionVarBindings } from '../../shared/modules/solutions/models';
 
 import { SolutionVarBindingsService } from './solution-var-bindings.service';
 
@@ -39,11 +39,11 @@ export class JobSolutionVarsComponent implements OnDestroy, OnInit {
       map(values => this.formBindings(values))
     ).subscribe(bindings => this.bindingsChange.emit(bindings));
 
-    this.subscription = combineLatest(
+    this.subscription = combineLatest([
       this.uss.jobDownloads,
       this.uss.jobCloudFiles,
       this.uss.uploadedFiles
-    ).subscribe(inputs => this.updateInputFiles(inputs));
+    ]).subscribe(inputs => this.updateInputFiles(inputs));
   }
 
   ngOnDestroy() {
@@ -82,5 +82,23 @@ export class JobSolutionVarsComponent implements OnDestroy, OnInit {
 
   isInputFileBinding(binding: VarBinding<any>): boolean {
     return binding && binding.type === 'file';
+  }
+
+  /**
+   * Patch the form key/values with the current solution bindings found in the
+   * UserStateService.
+   *
+   * Necessary for the Job Wizard which loads a Job before asking the user
+   * if they wish to create a new Job in which case the values need to be
+   * patched.
+   */
+  patchBindingValues() {
+    const varBindings: SolutionVarBindings = this.uss.getSolutionBindings();
+    if (varBindings.hasOwnProperty(this.solution.id)) {
+      const bindings: VarBinding<any>[] = varBindings[this.solution.id];
+      for (const binding of bindings) {
+        this.form.patchValue({ [binding.key]: [binding.value] });
+      }
+    }
   }
 }

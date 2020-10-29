@@ -22,6 +22,7 @@ import { SolutionVarBindingComponent } from './solution-var-binding.component';
 import { SolutionVarBindingsService } from './solution-var-bindings.service';
 import { JobObjectComponent } from './job-object.component';
 import { JobDatasetsComponent } from './job-datasets.component';
+import { ConfirmNewJobDialogComponent } from './confirm-new-job-dialog/confirm-new-job-dialog.component';
 
 @NgModule({
   imports: [
@@ -48,7 +49,8 @@ import { JobDatasetsComponent } from './job-datasets.component';
     JobSolutionVarsComponent,
     JobObjectComponent,
     FinalTemplateModalComponent,
-    SolutionVarBindingComponent
+    SolutionVarBindingComponent,
+    ConfirmNewJobDialogComponent
   ],
   exports: [JobWizardComponent],
   providers: [SolutionVarBindingsService],

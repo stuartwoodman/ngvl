@@ -17,6 +17,7 @@ import { UserModule } from './user/user.module';
 import { OverlayPanelModule } from 'primeng/overlaypanel';
 import { JobWizardModule } from './job-wizard/job-wizard.module';
 import { AngularSplitModule } from 'angular-split';
+import { ToastModule } from 'primeng/toast';
 
 
 @NgModule({
@@ -33,7 +34,8 @@ import { AngularSplitModule } from 'angular-split';
     JobsModule,
     UserModule,
     OverlayPanelModule,
-    JobWizardModule
+    JobWizardModule,
+    ToastModule
   ],
   declarations: [
     LayoutComponent,
