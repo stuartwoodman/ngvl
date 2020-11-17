@@ -232,6 +232,10 @@ export class JobWizardComponent implements AfterViewInit, OnInit, OnDestroy {
     return !this.jobIncomplete;
   }
 
+  hasSolutions(): boolean {
+    return this.solutions !== undefined && this.solutions.length > 0;
+  }
+
   validSolutionBindings(): boolean {
     const solutionvarBindings: SolutionVarBindings = this.userStateService.getSolutionBindings();
     for (const solution of this.solutions) {

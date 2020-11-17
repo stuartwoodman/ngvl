@@ -37,6 +37,7 @@
     "@types/openlayers": "^4.6.17",
     "angular-plotly.js": "^3.0.0",
     "angular-split": "^4.0.0",
+    "bootstrap": "^4.5.3",
     "chart.js": "^2.9.3",
     "core-js": "^3.6.5",
     "file-saver": "^2.0.2",
@@ -59,7 +60,7 @@
     "rxjs-compat": "6.6.3",
     "simplify": "^1.0.0",
     "yarn": "^1.22.5",
-    "zone.js": "^0.11.1"
+    "zone.js": "^0.11.3"
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "^0.901.12",

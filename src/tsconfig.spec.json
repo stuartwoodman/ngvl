@@ -16,6 +16,9 @@
   ],
   "include": [
     "**/*.spec.ts",
-    "**/*.d.ts"
+    "**/*.d.ts",
+    "../node_modules/portal-core-ui/**/*.ts",
+    "../node_modules/portal-core-ui/**/*.spec.ts",
+    "../node_modules/bootstrap/dist/css/*"
   ]
 }

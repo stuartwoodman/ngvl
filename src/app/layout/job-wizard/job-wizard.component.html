@@ -30,7 +30,7 @@
   </div>
 
   <p>
-    <button class="btn btn-primary" [disabled]="noSave" style="margin-right:8px;" title="Save job" (click)="save()">Save</button>
+    <button class="btn btn-primary" [disabled]="noSave || !hasSolutions()" style="margin-right:8px;" title="Save job" (click)="save()">Save</button>
     <button class="btn btn-primary" style="margin-right:8px;" title="Reset all job parameters" (click)="confirmReset()">Reset</button>
     <button class="btn btn-primary" [disabled]="!isJobComplete() || noSave" title="Submit job" (click)="submit()">Submit</button>     
   </p>
